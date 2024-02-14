@@ -1,0 +1,55 @@
+[2023-09-12 09:55:47] [DEBUG] HTTP GET: https://www.githubstatus.com/api/v2/incidents/unresolved.json
+[2023-09-12 09:55:49] [DEBUG] RESPONSE (OK): {"page":{"id":"kctbh9vrtdwd","name":"GitHub","url":"https://www.githubstatus.com","time_zone":"Etc/UTC","updated_at":"2023-09-11T08:04:43.937Z"},"incidents":[]}
+[2023-09-12 09:55:49] [DEBUG] HTTP GET: https://raw.githubusercontent.com/github/gh-gei/main/LATEST-VERSION.txt
+[2023-09-12 09:55:49] [DEBUG] RESPONSE (OK): v1.1.0
+
+[2023-09-12 09:55:49] [WARNING] You are running an older version of the gei CLI [v1.0.0.0]. The latest version is v1.1.0.
+[2023-09-12 09:55:49] [WARNING] Please update by running: gh extension upgrade gei
+[2023-09-12 09:55:49] [INFO] GITHUB SOURCE ORG: rc
+[2023-09-12 09:55:49] [INFO] SOURCE REPO: Artemis-software-list
+[2023-09-12 09:55:49] [INFO] GITHUB TARGET ORG: furo-migrations-emu
+[2023-09-12 09:55:49] [INFO] TARGET REPO: Artemis-software-list
+[2023-09-12 09:55:49] [INFO] TARGET REPO VISIBILITY: internal
+[2023-09-12 09:55:49] [INFO] VERBOSE: true
+[2023-09-12 09:55:49] [INFO] Migrating Repo...
+[2023-09-12 09:55:49] [DEBUG] HTTP POST: https://api.github.com/graphql
+[2023-09-12 09:55:49] [DEBUG] HTTP BODY: {"query":"query($login: String!) {organization(login: $login) { login, id, name } }","variables":{"login":"furo-migrations-emu"}}
+[2023-09-12 09:55:50] [DEBUG] GITHUB REQUEST ID: EC3C:7826:652269:6C44C0:64FFA906
+[2023-09-12 09:55:50] [DEBUG] RESPONSE (OK): {"data":{"organization":{"login":"furo-migrations-emu","id":"O_kgDOCGgYhQ","name":"furo-migrations-emu"}}}
+[2023-09-12 09:55:50] [DEBUG] HTTP POST: https://api.github.com/graphql
+[2023-09-12 09:55:50] [DEBUG] HTTP BODY: {"query":"mutation createMigrationSource($name: String!, $url: String!, $ownerId: ID!, $type: MigrationSourceType!) { createMigrationSource(input: {name: $name, url: $url, ownerId: $ownerId, type: $type}) { migrationSource { id, name, url, type } } }","variables":{"name":"GHEC Source","url":"https://github.com","ownerId":"O_kgDOCGgYhQ","type":"GITHUB_ARCHIVE"},"operationName":"createMigrationSource"}
+[2023-09-12 09:55:50] [DEBUG] GITHUB REQUEST ID: EC3C:7826:652288:6C44E1:64FFA906
+[2023-09-12 09:55:50] [DEBUG] RESPONSE (OK): {"data":{"createMigrationSource":{"migrationSource":{"id":"MS_kgDaACQ4MTY4OGVjMC0wZjFkLTQ0NjItOGMzMy0zOTgyMmYxNDIyN2M","name":"GHEC Source","url":"https://github.com","type":"GITHUB_ARCHIVE"}}}}
+[2023-09-12 09:55:50] [DEBUG] HTTP POST: https://api.github.com/graphql
+[2023-09-12 09:55:50] [DEBUG] HTTP BODY: {"query":"\n                mutation startRepositoryMigration(\n                    $sourceId: ID!,\n                    $ownerId: ID!,\n                    $sourceRepositoryUrl: URI!,\n                    $repositoryName: String!,\n                    $continueOnError: Boolean!,\n                    $gitArchiveUrl: String,\n                    $metadataArchiveUrl: String,\n                    $accessToken: String!,\n                    $githubPat: String,\n                    $skipReleases: Boolean,\n                    $targetRepoVisibility: String,\n                    $lockSource: Boolean) { \n                startRepositoryMigration(\n                    input: { \n                        sourceId: $sourceId,\n                        ownerId: $ownerId,\n                        sourceRepositoryUrl: $sourceRepositoryUrl,\n                        repositoryName: $repositoryName,\n                        continueOnError: $continueOnError,\n                        gitArchiveUrl: $gitArchiveUrl,\n                        metadataArchiveUrl: $metadataArchiveUrl,\n                        accessToken: $accessToken,\n                        githubPat: $githubPat,\n                        skipReleases: $skipReleases,\n                        targetRepoVisibility: $targetRepoVisibility,\n                        lockSource: $lockSource\n                    }\n                ) {\n                    repositoryMigration {\n                        id,\n                        databaseId,\n                        migrationSource {\n                            id,\n                            name,\n                            type\n                        },\n                        sourceUrl,\n                        state,\n                        failureReason\n                    }\n                  } }","variables":{"sourceId":"MS_kgDaACQ4MTY4OGVjMC0wZjFkLTQ0NjItOGMzMy0zOTgyMmYxNDIyN2M","ownerId":"O_kgDOCGgYhQ","sourceRepositoryUrl":"https://github.com/rc/Artemis-software-list","repositoryName":"Artemis-software-list","continueOnError":true,"gitArchiveUrl":null,"metadataArchiveUrl":null,"accessToken":"***","githubPat":"***","skipReleases":false,"targetRepoVisibility":"internal","lockSource":false},"operationName":"startRepositoryMigration"}
+[2023-09-12 09:55:53] [DEBUG] GITHUB REQUEST ID: EC3C:7826:6522AB:6C4504:64FFA906
+[2023-09-12 09:55:53] [DEBUG] RESPONSE (OK): {"data":{"startRepositoryMigration":{"repositoryMigration":{"id":"RM_kgDaACRkNzI0YjhiYi02MGY3LTQ2NWUtYTgyMC1kMTQ0MWI0Nzg5NzA","databaseId":"d724b8bb-60f7-465e-a820-d1441b478970","migrationSource":{"id":"MS_kgDaACQ4MTY4OGVjMC0wZjFkLTQ0NjItOGMzMy0zOTgyMmYxNDIyN2M","name":"GHEC Source","type":"GITHUB_ARCHIVE"},"sourceUrl":"https://github.com/rc/Artemis-software-list","state":"PENDING_VALIDATION","failureReason":""}}}}
+[2023-09-12 09:55:53] [DEBUG] HTTP POST: https://api.github.com/graphql
+[2023-09-12 09:55:53] [DEBUG] HTTP BODY: {"query":"query($id: ID!) { node(id: $id) { ... on Migration { id, sourceUrl, migrationLogUrl, migrationSource { name }, state, failureReason, repositoryName } } }","variables":{"id":"RM_kgDaACRkNzI0YjhiYi02MGY3LTQ2NWUtYTgyMC1kMTQ0MWI0Nzg5NzA"}}
+[2023-09-12 09:55:53] [DEBUG] GITHUB REQUEST ID: EC3C:7826:652339:6C4598:64FFA909
+[2023-09-12 09:55:53] [DEBUG] RESPONSE (OK): {"data":{"node":{"id":"RM_kgDaACRkNzI0YjhiYi02MGY3LTQ2NWUtYTgyMC1kMTQ0MWI0Nzg5NzA","sourceUrl":"https://github.com/rc/Artemis-software-list","migrationLogUrl":"","migrationSource":{"name":"GHEC Source"},"state":"FAILED","failureReason":"The source org with login rc could not be found or you do not have access. Please make sure you gave the correct source org login and try again.","repositoryName":"Artemis-software-list"}}}
+[2023-09-12 09:55:53] [ERROR] Migration Failed. Migration ID: RM_kgDaACRkNzI0YjhiYi02MGY3LTQ2NWUtYTgyMC1kMTQ0MWI0Nzg5NzA
+[2023-09-12 09:55:53] [INFO] Migration log available at  or by running `gh gei download-logs --github-target-org furo-migrations-emu --target-repo Artemis-software-list`
+[2023-09-12 09:55:53] [ERROR] OctoshiftCLI.OctoshiftCliException: The source org with login rc could not be found or you do not have access. Please make sure you gave the correct source org login and try again.
+   at OctoshiftCLI.GithubEnterpriseImporter.Commands.MigrateRepo.MigrateRepoCommandHandler.Handle(MigrateRepoCommandArgs args)
+   at OctoshiftCLI.Extensions.CommandExtensions.RunHandler[TArgs,THandler](TArgs args, ServiceProvider sp, CommandBase`2 command)
+   at OctoshiftCLI.Extensions.CommandExtensions.<>c__DisplayClass1_0`3.<<ConfigureCommand>b__0>d.MoveNext()
+--- End of stack trace from previous location --- ERROR
+   at System.CommandLine.Invocation.AnonymousCommandHandler.InvokeAsync(InvocationContext )
+   at System.CommandLine.Invocation.InvocationPipeline.<>c__DisplayClass4_0.<<BuildInvocationChain>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c__DisplayClass17_0.<<UseParseErrorReporting>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c__DisplayClass12_0.<<UseHelp>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c__DisplayClass22_0.<<UseVersionOption>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c__DisplayClass19_0.<<UseTypoCorrections>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c.<<UseSuggestDirective>b__18_0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c__DisplayClass16_0.<<UseParseDirective>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c.<<RegisterWithDotnetSuggest>b__5_0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at System.CommandLine.Builder.CommandLineBuilderExtensions.<>c__DisplayClass8_0.<<UseExceptionHandler>b__0>d.MoveNext()
