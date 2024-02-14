@@ -1,0 +1,193 @@
+KUBECTL
+-------
+kubectl config set-context --current --namespace=ggckad-s2
+kubectl config --kubeconfig=.root/my-kube-config use-context research
+kubectl config --kubeconfig=/root/my-kube-config current-context
+
+kubectl run nginx --image=nginx
+kubectl run nginx --image=nginx --port=8080
+kubectl run nginx --image=nginx --dry-run=client -o yaml
+kubectl run --restart=Never --image=busybox static-busybox --dry-run=client -o yaml --command -- sleep 1000
+
+<DEPLOYMENT>
+kubectl create deployment nginx --image=nginx
+kubectl create deployment --image=nginx nginx --dry-run=client -o yaml
+kubectl create deployment --image=nginx nginx --dry-run=client -o yaml > nginx-deployment.yaml
+kubectl create deployment --image=nginx nginx --replicas=4 --dry-run=client -o yaml > nginx-deployment.yaml
+
+<SERVICES>
+kubectl expose pod redis --port=6379 --name redis-service --dry-run=client -o yaml
+kubectl expose pod nginx --type=NodePort --port=80 --name=nginx-service --dry-run=client -o yaml
+(This will automatically use the pod's labels as selectors)
+
+kubectl expose deployment ingress-controller --type=NodePort --port=80 --name=ingress --dry-run=client -o yaml > ingress.yaml
+kubectl create service clusterip redis --tcp=6379:6379 --dry-run=client -o yaml
+kubectl create service nodeport nginx --tcp=80:80 --node-port=30080 --dry-run=client -o yaml
+
+#############
+Important:
+#############
+ps -aux | grep kubelet
+kubectl config view --kubeconfig=/root/my-kube-config
+
+
+kubectl taint nodes foo dedicated=special-user:NoSchedule
+kubectl taint nodes node01 node-role.kubernetes.io/master:NoSchedule-
+
+openssl x509  -noout -text -in ./server.crt
+
+CLUSTER MAINTENENCE
+-------------------
+Kubectl drain node-1
+kubectl drain node01 --ignore-daemonsets
+kubectl cordon node-1
+kubectl uncordon node-1
+
+kubelet
+kube-proxy
+kube-apiserver
+kube-controller-manager
+kube-scheduler
+
+UPGRADE:
+--------
+Kubeadm upgrade plan
+apt-get upgrade -y kubeadm=1.12.0.-00
+kubeadm upgrade apply v11.12.0
+apt-get upgrade -y kubelet=1.12.0.-00
+systemctl restart kubelet
+kubectl drain node01
+kubectl cordon node01
+ssh node01
+apt-get upgrade -y kubeadm=1.12.0.-00
+apt-get upgrade -y kubelet=1.12.0.-00
+kubectadm upgrade node config --kubelet-version v1.12.0
+systemctl restart kubelet
+kubectl uncordon node01
+
+#This will update the package lists from the software repository.
+apt update
+
+#This will install the kubeadm version 1.20
+apt install kubeadm=1.20.0-00
+
+#This will upgrade kubernetes controlplane. Note that this can take a few minutes.
+kubeadm upgrade apply v1.20.0
+
+apt install kubelet=1.20.0-00 
+
+This will update the kubelet with the version 1.20.
+apt-get install -y kubelet=1.21.0-00 kubeadm=1.21.0-00 kubectl=1.21.0-00
+
+#This will restart kubelet after it has been upgraded
+systemctl restart kubelet
+
+
+ETCD BACKUP:
+-----------
+etcdctl snapshot save -h
+
+ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key \
+  snapshot save /opt/etcd-backup.db
+
+JSONPATH:
+---------
+kubectl get nodes -o=jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+kubectl get nodes -o=jsonpath='{.items[*].status.nodeInfo.osImage}'
+kubectl config view --kubeconfig=/root/my-kube-config
+kubectl get pv --sort-by=.spec.capacity.storage 
+kubectl get pv --sort-by=.spec.capacity.storage -o=custom-columns=NAME:.metadata.name,CAPACITY:.spec.capacity.storage 
+kubectl config view --kubeconfig=my-kube-config -o jsonpath="{.contexts[?(@.context.user=='aws-user')].name}"
+
+write later:
+kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'
+kubectl run hr-pod --image=redis:alpine --namespace=hr --labels=environment=production,tier=frontend
+kubectl create clusterrole pvviewer-role --resource=persistentvolumes --verb=list
+kubectl create clusterrolebinding pvviewer-role-binding --clusterrole=pvviewer-role --serviceaccount=default:pvviewer
+nc -z -v site.com 
+
+OPENSSL:
+CA certificate
+#Generate keys
+openssl genrsa -out ca.key 2048
+openssl genrsa -out admin.key 2048
+
+#Generate CSR
+openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr
+openssl req -new -key ca.key -subj "/CN=kube-admin" -out admin.csr
+
+#Sign certificates
+openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
+openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -out admin.crt
+
+#To view certificate:
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
+
+To view certificates:
+Hardway:
+cat /etc/systemd/system/kube-apiserver.service
+Kubeadm:
+cat /etc/kubernetes/manifests/kube-apiserver.yaml
+
+To view logs:
+Hardway:
+journalctl -u etcd.service -l
+kubeadm:
+kubectl logs etcd-master
+docker ps -a
+docker logs container-id
+
+#accessing controlplane and apis
+curl http://localhost:6443/apis -k | grep names  --> we need to pass certificates to access like this
+#instead we can use kubectl proxy command to access kubeapi using certs from kubeconfig (PORT 8001)
+kubectl proxy | curl http://localhost:6443/apis -k | grep names
+
+#to view namespaced or non-namespaced resources
+kubectl api-resources --namespaced=true
+kubectl api-resources --namespaced=false
+
+NETWORKING:
+-----------
+# to see the interfaces of the hosts
+ip link
+
+#assigning ip addresses to interface
+ip addr add 192.168.1.10/24 dev eth0
+
+#to see the existing gateway or routing
+ip route
+
+# to add routes
+ip route add 192.168.2.0/24 via 192.168.1.1 
+
+# transfer packets between interfaces (eth0 and eth1)
+cat /proc/sys/net/ipv4/ip_forward --> 0 (no forward) --> 1(forward)
+
+arp
+netstat -nltp
+netstat -anp
+
+#DNS Server configuration:
+cat /etc/resolve.conf
+nameserver 192.168.1.100   --> this is the DNS server IP
+
+ls /opt/cni/bin
+ls /etc/cni/net.d/
+
+#weavenet
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')&env.IPALLOC_RANGE=10.50.0.0/16"
+
+
+Check:
+Pod, Deployment - labels, env, names, image names, 
+services: labels, ports, endpoints
+
+Master Node: events, pods in kube-system, logs, manifest files
+Worker nodes: kubelet service, journalctl -u kubelet, /var/lib/kubelet/config.yaml and /etc/kubernetes/kubelet.config, ca file expiry date
+
+Kubeproxy --> configuration is in configmaps 
+
+kubectl get -n admin2406 deploy --output=custom-columns="DEPLOYMENT:.metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[].image,READY_REPLICAS:.status.replicas,NAMESPACE:.metadata.namespace"
+
+DEPLOYMENT CONTAINER_IMAGE READY_REPLICAS NAMESPACE
